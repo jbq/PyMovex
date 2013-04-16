@@ -1,0 +1,4 @@
+*.so
+.*.sw*
+.sw*
+prefs.json
