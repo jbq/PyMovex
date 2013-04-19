@@ -1,6 +1,6 @@
 PYTHON_CFLAGS=`python-config --cflags`
 
-all: pymovex.so
+all: _pymovex.so
 
-pymovex.so: pymovex.c
-	gcc -shared $(PYTHON_CFLAGS) -o pymovex.so pymovex.c -L. -lMvxSock
+_pymovex.so: _pymovex.c
+	gcc -shared $(PYTHON_CFLAGS) -o _pymovex.so _pymovex.c -L. -lMvxSock

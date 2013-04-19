@@ -143,7 +143,7 @@ PyObject* pymovex_fquery_MyIter_iternext(PyObject *self)
 static PyTypeObject pymovex_fquery_MyIterType = {
     PyObject_HEAD_INIT(NULL)
     0,                         /*ob_size*/
-    "pymovex._fquery_MyIter",            /*tp_name*/
+    "_pymovex._fquery_MyIter",            /*tp_name*/
     sizeof(pymovex_fquery_MyIter),       /*tp_basicsize*/
     0,                         /*tp_itemsize*/
     0,                         /*tp_dealloc*/
@@ -214,15 +214,15 @@ static PyMethodDef PyMovexMethods[] = {
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
-PyMODINIT_FUNC initpymovex(void)
+PyMODINIT_FUNC init_pymovex(void)
 {
     PyObject *m;
 
-    m = Py_InitModule("pymovex", PyMovexMethods);
+    m = Py_InitModule("_pymovex", PyMovexMethods);
     if (m == NULL)
         return;
 
-    PyMovexError = PyErr_NewException("pymovex.Error", NULL, NULL);
+    PyMovexError = PyErr_NewException("_pymovex.Error", NULL, NULL);
     Py_INCREF(PyMovexError);
     PyModule_AddObject(m, "error", PyMovexError);
 }
