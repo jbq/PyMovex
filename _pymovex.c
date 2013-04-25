@@ -59,6 +59,8 @@ pymovex_connect(PyObject *self, PyObject *args, PyObject*kwargs)
     */
    memset(&comStruct, '\0', sizeof(SERVER_ID));
 
+   printf("Connecting with program %s, host %s, port %d, user %s\n", program, host, port, user);
+
    if((result=MvxSockSetup(&comStruct, host, port, "MvxSock C-test", 0, "NotUsed")))
        return reportError("MvxSockSetup", result);
 
@@ -113,31 +115,38 @@ PyObject* pymovex_fquery_MyIter_iter(PyObject *self)
     return self;
 }
 
-PyObject* pymovex_fquery_MyIter_iternext(PyObject *self)
-{
-  pymovex_fquery_MyIter *p = (pymovex_fquery_MyIter *)self;
-
-   if ((result=MvxSockAccess(&comStruct, p->cmd)))
-      return reportError("MvxSockAccess", result);
-
-  if(! MvxSockMore(&comStruct)) {
-    /* Raising of standard StopIteration exception with empty value. */
-    PyErr_SetNone(PyExc_StopIteration);
-    return NULL;
-  }
-
+PyObject* pymovex_next_result(PyObject* outputFields) {
     PyObject* d = PyDict_New();
     int pos;
     PyObject*key;
-      for (pos=0; pos<PyTuple_GET_SIZE(p->outputFields); pos++) {
-          key = PyTuple_GetItem(p->outputFields, pos);
-          char * value = MvxSockGetField(&comStruct, PyString_AsString(key));
-          PyObject*pyvalue = PyString_FromString(value);
-          Py_INCREF(pyvalue);
-          PyDict_SetItem(d, key, pyvalue);
-      }
-      Py_INCREF(d);
-      return d;
+
+    for (pos=0; pos<PyTuple_GET_SIZE(outputFields); pos++) {
+        key = PyTuple_GetItem(outputFields, pos);
+        char * value = MvxSockGetField(&comStruct, PyString_AsString(PyObject_Str(key)));
+        PyObject*pyvalue = PyString_FromString(value);
+        Py_INCREF(pyvalue);
+        PyDict_SetItem(d, key, pyvalue);
+    }
+
+    Py_INCREF(d);
+    return d;
+}
+
+PyObject* pymovex_fquery_MyIter_iternext(PyObject *self)
+{
+    pymovex_fquery_MyIter *p = (pymovex_fquery_MyIter *)self;
+
+    if ((result=MvxSockAccess(&comStruct, p->cmd)))
+        return reportError("MvxSockAccess", result);
+
+    if (! MvxSockMore(&comStruct)) {
+        /* Raising of standard StopIteration exception with empty value. */
+        PyErr_SetNone(PyExc_StopIteration);
+        printf("No more results\n");
+        return NULL;
+    }
+
+    return pymovex_next_result(p->outputFields);
 }
 
 static PyTypeObject pymovex_fquery_MyIterType = {
@@ -173,21 +182,33 @@ static PyTypeObject pymovex_fquery_MyIterType = {
     pymovex_fquery_MyIter_iternext  /* tp_iternext: next() method */
 };
 
+void pymovex_set_fields(PyObject* fieldMap) {
+    PyObject *key, *value;
+    Py_ssize_t pos = 0;
+    while (PyDict_Next(fieldMap, &pos, &key, &value)) {
+        char* skey;
+        char* svalue;
+        // TODO assert key is a string
+        skey = PyString_AsString(PyObject_Str(key));
+        // Note: value could be an integer, so we have to call str(value) first
+        svalue = PyString_AsString(PyObject_Str(value));
+        MvxSockSetField(&comStruct, skey, svalue);
+        printf("    Field: (%s, %s)\n", skey, svalue);
+    }
+}
 
 static PyObject * pymovex_fquery(PyObject*self, PyObject*args) {
     PyObject * fieldMap;
     PyObject * outputFields;
     char*cmd;
-    PyObject *key, *value;
-    Py_ssize_t pos = 0;
     pymovex_fquery_MyIter *p;
 
     if (! PyArg_ParseTuple(args, "sOO", &cmd, &fieldMap, &outputFields))
         return NULL;
 
-    while (PyDict_Next(fieldMap, &pos, &key, &value)) {
-       MvxSockSetField(&comStruct, PyString_AsString(key), PyString_AsString(value));
-    }
+    printf("Command: %s\n", cmd);
+
+    pymovex_set_fields(fieldMap);
 
    p = PyObject_New(pymovex_fquery_MyIter, &pymovex_fquery_MyIterType);
    if (!p) return NULL;
@@ -196,6 +217,24 @@ static PyObject * pymovex_fquery(PyObject*self, PyObject*args) {
    p->outputFields = outputFields;
    Py_INCREF(p);
    return (PyObject*)p;
+}
+
+static PyObject * pymovex_fquery_single(PyObject*self, PyObject*args) {
+    PyObject * fieldMap;
+    PyObject * outputFields;
+    char*cmd;
+
+    if (! PyArg_ParseTuple(args, "sOO", &cmd, &fieldMap, &outputFields))
+        return NULL;
+
+    printf("Command: %s\n", cmd);
+
+    pymovex_set_fields(fieldMap);
+
+    if ((result=MvxSockAccess(&comStruct, cmd)))
+        return reportError("MvxSockAccess", result);
+
+    return pymovex_next_result(outputFields);
 }
 
 static PyObject* pymovex_close(PyObject *self, PyObject* args) {
@@ -211,6 +250,7 @@ static PyMethodDef PyMovexMethods[] = {
     {"close",  pymovex_close, METH_VARARGS, "Close"},
     {"query",  pymovex_query, METH_VARARGS, "Query"},
     {"fquery",  pymovex_fquery, METH_VARARGS, "Field-based query"},
+    {"fquery_single",  pymovex_fquery_single, METH_VARARGS, "Field-based query with only one expected result"},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
