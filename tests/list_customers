@@ -5,9 +5,9 @@ import pymovex
 program = "CRS610MI"
 with open("prefs.json") as f:
     prefs = simplejson.loads(f.read())
-pymovex.connect(program, **prefs)
+pymovex.connect(program, **prefs['connect'])
 
-# "LstByGroup"
 pymovex.maxrec(10)
-
+for i, result in enumerate(pymovex.fquery("LstByName", {"CONO": prefs['globals']['CONO']}, ('CUNO',))):
+    print "%-3s"%i, result
 pymovex.close()

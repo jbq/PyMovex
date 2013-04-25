@@ -1,0 +1,15 @@
+#! /usr/bin/python
+
+import simplejson
+import pymovex
+
+with open("prefs.json") as f:
+    prefs = simplejson.loads(f.read())
+
+pymovex.connect("OIS320MI", **prefs['connect'])
+
+pymovex.rawquery("GetPriceLine   900   41004201  000040")
+
+print pymovex.fquery_single("GetPriceLine", {"CONO": prefs['globals']['CONO'], "CUNO": "41004201", "ITNO": "000040"}, ('ORQS',))
+
+pymovex.close()
