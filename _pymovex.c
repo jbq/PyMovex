@@ -29,9 +29,9 @@ static PyObject *PyMovexError;
 char errstr[1024];
 
 PyObject*reportError(char*method, int result) {
-  snprintf(errstr, sizeof(errstr), "%s returned error %d: %s", method, result, comStruct.Buff);
-  PyErr_SetString(PyMovexError, errstr);
-  return NULL;
+    snprintf(errstr, sizeof(errstr), "%s returned error %d: %s", method, result, comStruct.Buff);
+    PyErr_SetString(PyMovexError, errstr);
+    return NULL;
 }
 
 static PyObject *
@@ -74,39 +74,41 @@ pymovex_connect(PyObject *self, PyObject *args, PyObject*kwargs)
 static PyObject * pymovex_query(PyObject*self, PyObject*args) {
     char recvBuff[1000];
     char *sendBuff;
-int count;
-   if (! PyArg_ParseTuple(args, "s", &sendBuff))
-       return NULL;
-   printf("Query: |%s|\n", sendBuff);
+    int count;
 
-   len=sizeof(recvBuff);
-   count=0;
+    if (! PyArg_ParseTuple(args, "s", &sendBuff))
+        return NULL;
 
-   if((result=MvxSockTrans(&comStruct, sendBuff, recvBuff, &len)))
-       return reportError("MvxSockTrans", result);
+    printf("Query: |%s|\n", sendBuff);
 
-   printf("Sent %d bytes: %s\n", strlen(sendBuff), sendBuff);
-   printf("Got %d bytes: %s\n", strlen(recvBuff), recvBuff);
+    len=sizeof(recvBuff);
+    count=0;
 
-   while(strncmp(recvBuff, "REP  ", 5)==0) {
-      count++;
-      len=1000;
-      if((result=MvxSockReceive(&comStruct, recvBuff, &len)))
-          return reportError("MvxSockReceive", result);
+    if((result=MvxSockTrans(&comStruct, sendBuff, recvBuff, &len)))
+        return reportError("MvxSockTrans", result);
 
-      printf("Got %d bytes: %s\n", strlen(recvBuff), recvBuff);
-      }
+    printf("Sent %d bytes: %s\n", strlen(sendBuff), sendBuff);
+    printf("Got %d bytes: %s\n", strlen(recvBuff), recvBuff);
 
-   printf("Got %d REP-lines.\n", count);
+    while(strncmp(recvBuff, "REP  ", 5)==0) {
+        count++;
+        len=1000;
+        if((result=MvxSockReceive(&comStruct, recvBuff, &len)))
+            return reportError("MvxSockReceive", result);
 
-   Py_INCREF(Py_None);
-   return Py_None;
+        printf("Got %d bytes: %s\n", strlen(recvBuff), recvBuff);
+    }
+
+    printf("Got %d REP-lines.\n", count);
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 typedef struct {
-  PyObject_HEAD
-  char* cmd;
-  PyObject * outputFields;
+    PyObject_HEAD
+    char* cmd;
+    PyObject * outputFields;
 } pymovex_fquery_MyIter;
 
 PyObject* pymovex_fquery_MyIter_iter(PyObject *self)
