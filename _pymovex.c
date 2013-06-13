@@ -22,11 +22,12 @@
 #define HIBYTE(w)           ((unsigned char)(((unsigned short)(w) >> 8) & 0xFF))
 
 
-SERVER_ID comStruct;
-int result;
-unsigned long len;
+static SERVER_ID comStruct;
+static int result;
+static unsigned long len;
 static PyObject *PyMovexError;
-char errstr[1024];
+static char errstr[1024];
+static PyObject*OrderedDict;
 
 PyObject*reportError(char*method, int result) {
     snprintf(errstr, sizeof(errstr), "%s returned error %d: %s", method, result, comStruct.Buff);
@@ -59,7 +60,7 @@ pymovex_connect(PyObject *self, PyObject *args, PyObject*kwargs)
     */
    memset(&comStruct, '\0', sizeof(SERVER_ID));
 
-   printf("Connecting with program %s, host %s, port %d, user %s\n", program, host, port, user);
+   fprintf(stderr, "Connecting with program %s, host %s, port %d, user %s\n", program, host, port, user);
 
    if((result=MvxSockSetup(&comStruct, host, port, "MvxSock C-test", 0, "NotUsed")))
        return reportError("MvxSockSetup", result);
@@ -79,7 +80,7 @@ static PyObject * pymovex_query(PyObject*self, PyObject*args) {
     if (! PyArg_ParseTuple(args, "s", &sendBuff))
         return NULL;
 
-    printf("Query: |%s|\n", sendBuff);
+    fprintf(stderr, "Query: |%s|\n", sendBuff);
 
     len=sizeof(recvBuff);
     count=0;
@@ -87,8 +88,8 @@ static PyObject * pymovex_query(PyObject*self, PyObject*args) {
     if((result=MvxSockTrans(&comStruct, sendBuff, recvBuff, &len)))
         return reportError("MvxSockTrans", result);
 
-    printf("Sent %d bytes: %s\n", strlen(sendBuff), sendBuff);
-    printf("Got %d bytes: %s\n", strlen(recvBuff), recvBuff);
+    fprintf(stderr, "Sent %zu bytes: %s\n", strlen(sendBuff), sendBuff);
+    fprintf(stderr, "Got %zu bytes: %s\n", strlen(recvBuff), recvBuff);
 
     while(strncmp(recvBuff, "REP  ", 5)==0) {
         count++;
@@ -96,10 +97,10 @@ static PyObject * pymovex_query(PyObject*self, PyObject*args) {
         if((result=MvxSockReceive(&comStruct, recvBuff, &len)))
             return reportError("MvxSockReceive", result);
 
-        printf("Got %d bytes: %s\n", strlen(recvBuff), recvBuff);
+        fprintf(stderr, "Got %zu bytes: %s\n", strlen(recvBuff), recvBuff);
     }
 
-    printf("Got %d REP-lines.\n", count);
+    fprintf(stderr, "Got %d REP-lines.\n", count);
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -118,7 +119,7 @@ PyObject* pymovex_fquery_MyIter_iter(PyObject *self)
 }
 
 PyObject* pymovex_next_result(PyObject* outputFields) {
-    PyObject* d = PyDict_New();
+    PyObject* d = PyObject_CallFunctionObjArgs(OrderedDict, NULL);
     int pos;
     PyObject*key;
 
@@ -127,7 +128,7 @@ PyObject* pymovex_next_result(PyObject* outputFields) {
         char * value = MvxSockGetField(&comStruct, PyString_AsString(PyObject_Str(key)));
         PyObject*pyvalue = PyString_FromString(value);
         Py_INCREF(pyvalue);
-        PyDict_SetItem(d, key, pyvalue);
+        PyObject_SetItem(d, key, pyvalue);
     }
 
     Py_INCREF(d);
@@ -144,7 +145,7 @@ PyObject* pymovex_fquery_MyIter_iternext(PyObject *self)
     if (! MvxSockMore(&comStruct)) {
         /* Raising of standard StopIteration exception with empty value. */
         PyErr_SetNone(PyExc_StopIteration);
-        printf("No more results\n");
+        fprintf(stderr, "No more results\n");
         return NULL;
     }
 
@@ -195,7 +196,7 @@ void pymovex_set_fields(PyObject* fieldMap) {
         // Note: value could be an integer, so we have to call str(value) first
         svalue = PyString_AsString(PyObject_Str(value));
         MvxSockSetField(&comStruct, skey, svalue);
-        printf("    Field: (%s, %s)\n", skey, svalue);
+        fprintf(stderr, "    Field: (%s, %s)\n", skey, svalue);
     }
 }
 
@@ -208,7 +209,7 @@ static PyObject * pymovex_fquery(PyObject*self, PyObject*args) {
     if (! PyArg_ParseTuple(args, "sOO", &cmd, &fieldMap, &outputFields))
         return NULL;
 
-    printf("Command: %s\n", cmd);
+    fprintf(stderr, "Command: %s\n", cmd);
 
     pymovex_set_fields(fieldMap);
 
@@ -229,7 +230,7 @@ static PyObject * pymovex_fquery_single(PyObject*self, PyObject*args) {
     if (! PyArg_ParseTuple(args, "sOO", &cmd, &fieldMap, &outputFields))
         return NULL;
 
-    printf("Command: %s\n", cmd);
+    fprintf(stderr, "Command: %s\n", cmd);
 
     pymovex_set_fields(fieldMap);
 
@@ -267,4 +268,8 @@ PyMODINIT_FUNC init_pymovex(void)
     PyMovexError = PyErr_NewException("_pymovex.Error", NULL, NULL);
     Py_INCREF(PyMovexError);
     PyModule_AddObject(m, "error", PyMovexError);
+    PyObject*collectionsMod = PyImport_ImportModule("collections");
+    if (collectionsMod == NULL)
+        return;
+    OrderedDict=PyObject_GetAttrString(collectionsMod, "OrderedDict");
 }
