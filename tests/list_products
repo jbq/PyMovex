@@ -8,11 +8,22 @@ with open("prefs.json") as f:
     prefs = simplejson.loads(f.read())
 
 pymovex.connect("MMS200MI", **prefs['connect'])
-pymovex.maxrec(1000000)
+pymovex.maxrec(0)
 
-# will not fetch so many items thanks to the use of a generator
-for i, result in enumerate(pymovex.fquery("LstItmByItm", {'CONO': prefs['globals']['CONO']}, ('STAT', 'ITDS', 'FUDS', 'ITNO'))):
-    print "%-3s"%i, result
+cols = ('STAT', 'ITNO', 'ITDS', 'FUDS', 'DWNO', 'RESP', 'RENM', 'UNMS', 'DS01', 'ITGR',
+'DS02', 'ITCL', 'DS03', 'BUAR', 'DS04', 'ITTY', 'DS05', 'TPCD', 'MABU', 'CHCD',
+'STCD', 'BACD', 'VOL3', 'NEWE', 'GRWE', 'PPUN', 'DS06', 'BYPR', 'WAPC', 'QACD',
+'EPCD', 'POCY', 'ACTI', 'HIE1', 'HIE2', 'HIE3', 'HIE4', 'HIE5', 'GRP1', 'GRP2',
+'GRP3', 'GRP4', 'GRP5', 'CFI1', 'CFI2', 'CFI3', 'CFI4', 'CFI5', 'TXID', 'ECMA',
+'PRGP', 'DS07', 'INDI', 'PUUN', 'DS08', 'ALUC', 'IEAA', 'EXPD', 'GRMT', 'HAZI',
+'SALE', 'TAXC', 'DS09', 'ATMO', 'ATMN', 'TPLI', 'FCU1', 'ALUN', 'IACP', 'HDPR',
+'AAD0', 'AAD1', 'CHCL', 'ITRC', 'VTCP', 'DS10', 'VTCS', 'DS11', 'LMDT', 'DCCD',
+'PDCC', 'SPUN')
+print ";".join(cols)
+
+# will not fetch all items thanks to the use of a generator
+for i, result in enumerate(pymovex.fquery("LstItmByItm", {'CONO': prefs['globals']['CONO']}, cols)):
+    print ";".join(result.values())
     if i==100:
         break
 
