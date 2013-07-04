@@ -25,6 +25,7 @@
 static SERVER_ID comStruct;
 static int result;
 static unsigned long len;
+static int firstResult;
 static PyObject *PyMovexError;
 static char errstr[1024];
 static PyObject*OrderedDict;
@@ -137,10 +138,18 @@ PyObject* pymovex_next_result(PyObject* outputFields) {
 
 PyObject* pymovex_fquery_MyIter_iternext(PyObject *self)
 {
+    char * cmd;
     pymovex_fquery_MyIter *p = (pymovex_fquery_MyIter *)self;
 
-    if ((result=MvxSockAccess(&comStruct, p->cmd)))
+    if (firstResult)
+        cmd = p->cmd;
+    else
+        cmd = NULL;
+
+    if ((result=MvxSockAccess(&comStruct, cmd)))
         return reportError("MvxSockAccess", result);
+
+    firstResult = 0;
 
     if (! MvxSockMore(&comStruct)) {
         /* Raising of standard StopIteration exception with empty value. */
@@ -212,6 +221,8 @@ static PyObject * pymovex_fquery(PyObject*self, PyObject*args) {
     fprintf(stderr, "Command: %s\n", cmd);
 
     pymovex_set_fields(fieldMap);
+
+    firstResult = 1;
 
    p = PyObject_New(pymovex_fquery_MyIter, &pymovex_fquery_MyIterType);
    if (!p) return NULL;
