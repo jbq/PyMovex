@@ -10,7 +10,7 @@ with open("prefs.json") as f:
 args = sys.argv[1:]
 pymovex.connect("PPS100MI", **prefs['connect'])
 
-fields = ('SUNO', 'AGNB', 'OBV1', 'GRPI', 'FVDT', 'AGQT', 'PUPR', 'PUCD')
+fields = ('SUNO', 'AGNB', 'OBV1', 'GRPI', 'FVDT', 'AGQT', 'PUPR', 'PUCD', 'DIP3')
 
 # Skip headers
 line = sys.stdin.readline()
