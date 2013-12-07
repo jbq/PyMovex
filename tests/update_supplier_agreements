@@ -3,31 +3,35 @@
 import simplejson, sys, os.path
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 import pymovex
+import openpyxl
 
 with open("prefs.json") as f:
     prefs = simplejson.loads(f.read())
 
-args = sys.argv[1:]
+cmd_args = sys.argv[1:]
+wb = openpyxl.reader.excel.load_workbook(cmd_args[0])
+sheet = wb.get_active_sheet()
+
 pymovex.connect("PPS100MI", **prefs['connect'])
 
-fields = ('SUNO', 'AGNB', 'OBV1', 'GRPI', 'FVDT', 'AGQT', 'PUPR', 'PUCD', 'DIP3')
+fields = ('SUNO', 'AGNB', 'FVDT', 'OBV1', 'GRPI', 'PUPR', 'PUCD', 'DIP3', 'AGQT', 'FRQT')
 
-# Skip headers
-line = sys.stdin.readline()
-
-while True:
-    line = sys.stdin.readline()
-    if line == '':
-        break
-    line = line.rstrip()
-    values = line.split(';')
+# Skip first two lines
+for row in sheet.rows[2:]:
     data = {}
     for i, key in enumerate(fields):
-        data[key] = values[i]
+        data[key] = row[i].value
+
+    assert isinstance(data['GRPI'], basestring), "Field GRPI is not a string: %s" % data['GRPI']
+    assert isinstance(data['OBV1'], basestring), "Field OBV1 is not a string: %s" % data['OBV1']
 
     args = {"CONO": prefs['globals']['CONO']}
     args.update(data)
-    print data
-    pymovex.fquery_single("UpdAgrLine", args, ())
+    args1 = dict(args)
+    del args1['FRQT']
+    args2 = dict(args)
+    print args
+    pymovex.fquery_single("UpdAgrLine", args1, ())
+    pymovex.fquery_single("UpdStgPrice", args2, ())
 
 pymovex.close()

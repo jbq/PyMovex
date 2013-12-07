@@ -10,9 +10,18 @@ with open("prefs.json") as f:
 args = sys.argv[1:]
 pymovex.connect("PPS100MI", **prefs['connect'])
 
-fields = ('SUNO', 'AGNB', 'OBV1', 'GRPI', 'FVDT', 'AGQT', 'PUQT', 'PUPR')
-print ";".join(fields)
-for v in pymovex.fquery("LstAgrLine", {"CONO": prefs['globals']['CONO'], "SUNO": args[0], "AGNB": args[1]}, fields):
-    print ";".join(v.values())
+fields1 = ('SUNO', 'AGNB', 'OBV1', 'GRPI', 'FVDT', 'AGQT', 'PUQT', 'PUPR')
+fields2 = ('SUNO', 'AGNB', 'FVDT', 'OBV1', 'GRPI', 'PUPR', 'DIP3', 'FRQT')
+
+print ";".join(fields1)
+lines = []
+for v in pymovex.fquery("LstAgrLine", {"CONO": prefs['globals']['CONO'], "SUNO": args[0], "AGNB": args[1]}, fields1):
+    lines.append(v)
+    print ';'.join(v.values())
+
+print ";".join(fields2)
+for v in lines:
+    for v2 in pymovex.fquery("LstStgPrice", {"CONO": prefs['globals']['CONO'], "SUNO": args[0], "AGNB": args[1], "GRPI": v['GRPI'], 'OBV1': v['OBV1'], 'FVDT': v['FVDT']}, fields2):
+        print ";".join(v2.values())
 
 pymovex.close()
