@@ -286,9 +286,16 @@ PyMODINIT_FUNC init_pymovex(void)
     if (m == NULL)
         return;
 
+    /*
+     * Create a new _pymovex.Error exception type
+     */
     PyMovexError = PyErr_NewException("_pymovex.Error", NULL, NULL);
     Py_INCREF(PyMovexError);
-    PyModule_AddObject(m, "error", PyMovexError);
+    PyModule_AddObject(m, "Error", PyMovexError);
+
+    /*
+     * Import OrderedDict
+     */
     PyObject*collectionsMod = PyImport_ImportModule("collections");
     if (collectionsMod == NULL)
         return;
