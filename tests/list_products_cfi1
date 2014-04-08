@@ -4,7 +4,7 @@ import simplejson, sys, os.path
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 import pymovex
 
-with open("prefs.json") as f:
+with open(sys.argv[1]) as f:
     prefs = simplejson.loads(f.read())
 
 pymovex.connect("MMS200MI", **prefs['connect'])

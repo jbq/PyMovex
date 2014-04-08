@@ -9,6 +9,24 @@ with open("prefs.json") as f:
 
 pymovex.connect("OIS320MI", **prefs['connect'])
 
+# CONO	16	18	3	N	1	Company
+# FACI	19	21	3	A	1	Facility
+# CUNO	22	31	10	A	1	Customer number
+# ITNO	32	46	15	A	1	Item number
+# WHLO	47	49	3	A		Warehouse location
+# ORDT	50	59	10	D		Order date
+# ORQA	60	75	16	N		Ordered quantity
+# ALUN	76	78	3	A		Alternate unit of measurement
+# CUCD	79	81	3	A		Currency
+# ORTP	82	84	3	A		Order type
+# PRRF	85	86	2	A		Price list
+# DISY	87	96	10	A		Discount model
+# DWDT	97	106	10	N		Requested delivery date
+# CFIN	107	113	7	N		Configuration number
+# CAMA	114	114	1	N		Calculate markups
+# ATNR	115	131	17	N		Attribute number
+
+
 pymovex.rawquery("GetPriceLine   900   41004201  000040")
 
 print pymovex.fquery_single("GetPriceLine", {"CONO": prefs['globals']['CONO'], "CUNO": "41004201", "ITNO": "000040"}, ('ORQS',))

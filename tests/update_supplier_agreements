@@ -22,16 +22,26 @@ for row in sheet.rows[2:]:
     for i, key in enumerate(fields):
         data[key] = row[i].value
 
-    assert isinstance(data['GRPI'], basestring), "Field GRPI is not a string: %s" % data['GRPI']
-    assert isinstance(data['OBV1'], basestring), "Field OBV1 is not a string: %s" % data['OBV1']
+    data['GRPI'] = str(data['GRPI'])
+    data['OBV1'] = str(data['OBV1'])
+
+    assert len(data['GRPI']) == 2
+    assert len(data['OBV1']) == 6
 
     args = {"CONO": prefs['globals']['CONO']}
     args.update(data)
+
     args1 = dict(args)
     del args1['FRQT']
+
     args2 = dict(args)
-    print args
-    pymovex.fquery_single("UpdAgrLine", args1, ())
-    pymovex.fquery_single("UpdStgPrice", args2, ())
+    args2['PUPR'] = args2['PUPR'] / args2['PUCD']
+    del args2['AGQT']
+    del args2['PUCD']
+
+    #print "UpdAgrLine", args1
+    #pymovex.fquery_single("UpdAgrLine", args1, ())
+    print "UpdStgPrice", args2
+    #pymovex.fquery_single("UpdStgPrice", args2, ())
 
 pymovex.close()
