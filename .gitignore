@@ -2,3 +2,5 @@
 .*.sw*
 .sw*
 prefs.json
+build
+*.pyc
