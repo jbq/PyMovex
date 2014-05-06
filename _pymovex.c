@@ -309,7 +309,6 @@ PyMODINIT_FUNC init_pymovex(void)
      * Create a new _pymovex.Error exception type
      */
     PyMovexError = PyErr_NewException("_pymovex.Error", NULL, NULL);
-    Py_INCREF(PyMovexError);
     PyModule_AddObject(m, "Error", PyMovexError);
 
     /*
