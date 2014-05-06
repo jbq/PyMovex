@@ -1,5 +1,8 @@
 import _pymovex
 
+def debug(d):
+    _pymovex.debug(d)
+
 def connect(*args, **kwargs):
     return _pymovex.connect(*args, **kwargs)
 

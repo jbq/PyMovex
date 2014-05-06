@@ -272,11 +272,19 @@ static PyObject * pymovex_fquery_single(PyObject*self, PyObject*args) {
 }
 
 static PyObject* pymovex_close(PyObject *self, PyObject* args) {
-   if((result=MvxSockClose(&comStruct)))
-       return reportError("MvxSockClose", result);
+    if((result=MvxSockClose(&comStruct)))
+        return reportError("MvxSockClose", result);
 
-   Py_INCREF(Py_None);
-   return Py_None;
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject* pymovex_debug(PyObject *self, PyObject* args) {
+    if (!PyArg_ParseTuple(args, "i", &DEBUG))
+        return NULL;
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 static PyMethodDef PyMovexMethods[] = {
@@ -285,6 +293,7 @@ static PyMethodDef PyMovexMethods[] = {
     {"query",  pymovex_query, METH_VARARGS, "Query"},
     {"fquery",  pymovex_fquery, METH_VARARGS, "Field-based query"},
     {"fquery_single",  pymovex_fquery_single, METH_VARARGS, "Field-based query with only one expected result"},
+    {"debug", pymovex_debug, METH_VARARGS, "Set debug option"},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
