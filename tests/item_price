@@ -4,6 +4,8 @@ import simplejson, sys, os.path
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 import pymovex
 
+pymovex.debug(False)
+
 with open("prefs.json") as f:
     prefs = simplejson.loads(f.read())
 
@@ -27,8 +29,16 @@ pymovex.connect("OIS320MI", **prefs['connect'])
 # ATNR	115	131	17	N		Attribute number
 
 
-pymovex.rawquery("GetPriceLine   900   41004201  000040")
+output_fields = ('WHLO', 'SAPR', 'LNAM', 'ORDT', 'ORQA', 'ORQS', 'PRRF', 'SMCD', 'ORTP', 'AAGN',
+'BAGN', 'DISY', 'CUCD', 'ALUN', 'PRMO', 'SPUN', 'SACD', 'PRRO', 'CMNO', 'DIA1',
+'DIA2', 'DIA3', 'DIA4', 'DIA5', 'DIA6', 'DIC1', 'DIC2', 'DIC3', 'DIC4', 'DIC5',
+'DIC6', 'CMP1', 'CMP2', 'CMP3', 'CMP4', 'CMP5', 'CMP6', 'TX81', 'TX82', 'TX83',
+'TX84', 'TX85', 'TX86', 'CHL1', 'CHL2', 'CHL3', 'CHL4', 'CHL5', 'CHL6', 'SAC2')
 
-print pymovex.fquery_single("GetPriceLine", {"CONO": prefs['globals']['CONO'], "CUNO": "41004201", "ITNO": "000040"}, ('ORQS',))
+pymovex.rawquery("GetPriceLine   900   41004201  000040")
+pymovex.rawquery("GetPriceLine   900   00000040  123440")
+
+print pymovex.fquery_single("GetPriceLine", {"CONO": prefs['globals']['CONO'], "CUNO": "41004201", "ITNO": "000040"}, output_fields)
+#print pymovex.fquery_single("GetPriceLine", {"CONO": prefs['globals']['CONO'], "CUNO": "000040", "ITNO": "41004201"}, output_fields)
 
 pymovex.close()
