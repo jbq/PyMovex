@@ -130,10 +130,20 @@ PyObject* pymovex_next_result(PyObject* outputFields) {
     PyObject* d = PyObject_CallFunctionObjArgs(OrderedDict, NULL);
     int pos;
     PyObject*key;
+    char*c_key;
+    char*value;
 
     for (pos=0; pos<PyTuple_GET_SIZE(outputFields); pos++) {
         key = PyTuple_GetItem(outputFields, pos);
-        char * value = MvxSockGetField(&comStruct, PyString_AsString(PyObject_Str(key)));
+        c_key = PyString_AsString(PyObject_Str(key));
+        value = MvxSockGetField(&comStruct, c_key);
+
+        if (! value) {
+            snprintf(errstr, sizeof(errstr), "No such field: %s", c_key);
+            PyErr_SetString(PyMovexError, errstr);
+            return NULL;
+        }
+
         PyObject*pyvalue = PyString_FromString(value);
         Py_INCREF(pyvalue);
         PyObject_SetItem(d, key, pyvalue);
