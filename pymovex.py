@@ -6,11 +6,11 @@ def debug(d):
 def connect(*args, **kwargs):
     return _pymovex.connect(*args, **kwargs)
 
-def fquery(*args, **kwargs):
-    return _pymovex.fquery(*args, **kwargs)
+def fquery(cmd, fieldMap, outputFields=()):
+    return _pymovex.fquery(cmd, fieldMap, outputFields)
 
-def fquery_single(*args, **kwargs):
-    return _pymovex.fquery_single(*args, **kwargs)
+def fquery_single(cmd, fieldMap, outputFields=()):
+    return _pymovex.fquery_single(cmd, fieldMap, outputFields)
 
 def close(*args, **kwargs):
     return _pymovex.close(*args, **kwargs)
