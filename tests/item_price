@@ -35,10 +35,11 @@ output_fields = ('WHLO', 'SAPR', 'LNAM', 'ORDT', 'ORQA', 'ORQS', 'PRRF', 'SMCD',
 'DIC6', 'CMP1', 'CMP2', 'CMP3', 'CMP4', 'CMP5', 'CMP6', 'TX81', 'TX82', 'TX83',
 'TX84', 'TX85', 'TX86', 'CHL1', 'CHL2', 'CHL3', 'CHL4', 'CHL5', 'CHL6', 'SAC2')
 
-pymovex.rawquery("GetPriceLine   900   41004201  000040")
-pymovex.rawquery("GetPriceLine   900   00000040  123440")
+#pymovex.rawquery("GetPriceLine   900   41004201  000040")
+#pymovex.rawquery("GetPriceLine   900   00000040  123440")
 
-print pymovex.fquery_single("GetPriceLine", {"CONO": prefs['globals']['CONO'], "CUNO": "41004201", "ITNO": "000040"}, output_fields)
+args = sys.argv[1:]
+print pymovex.fquery_single("GetPriceLine", {"CONO": prefs['globals']['CONO'], "CUNO": args[0], "ITNO": args[1], "ORQA": args[2]}, output_fields)
 #print pymovex.fquery_single("GetPriceLine", {"CONO": prefs['globals']['CONO'], "CUNO": "000040", "ITNO": "41004201"}, output_fields)
 
 pymovex.close()
