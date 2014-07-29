@@ -4,7 +4,7 @@ import glob
 _pymovex = Extension('_pymovex', sources = ['_pymovex.c'], libraries=['MvxSock'])
 
 setup(name='pymovex',
-      version='1.0.1',
+      version='1.0.2',
       description="Python module for interacting with M3/Movex, implemented using the C-API",
       py_modules=['pymovex'],
       ext_modules=[_pymovex],
