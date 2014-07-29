@@ -212,20 +212,31 @@ static PyTypeObject pymovex_fquery_MyIterType = {
     pymovex_fquery_MyIter_iternext  /* tp_iternext: next() method */
 };
 
-void pymovex_set_fields(PyObject* fieldMap) {
+int pymovex_set_fields(PyObject* fieldMap) {
     PyObject *key, *value;
     Py_ssize_t pos = 0;
     while (PyDict_Next(fieldMap, &pos, &key, &value)) {
         char* skey;
+        char* spos;
         char* svalue;
-        // TODO assert key is a string
-        skey = PyString_AsString(PyObject_Str(key));
+
+        // Make sure key is a string
+        if (! PyString_Check(key)) {
+            skey = PyString_AsString(PyObject_Str(key));
+            snprintf(errstr, sizeof(errstr), "Bad parameter name: %s", skey);
+            PyErr_SetString(PyMovexError, errstr);
+            return 0;
+        }
+
+        skey = PyString_AsString(key);
         // Note: value could be an integer, so we have to call str(value) first
         svalue = PyString_AsString(PyObject_Str(value));
         MvxSockSetField(&comStruct, skey, svalue);
         if (DEBUG)
             fprintf(stderr, "    Field: (%s, %s)\n", skey, svalue);
     }
+
+    return 1;
 }
 
 static PyObject * pymovex_fquery(PyObject*self, PyObject*args) {
@@ -240,7 +251,8 @@ static PyObject * pymovex_fquery(PyObject*self, PyObject*args) {
     if (DEBUG)
         fprintf(stderr, "Command: %s\n", cmd);
 
-    pymovex_set_fields(fieldMap);
+    if (! pymovex_set_fields(fieldMap))
+        return NULL;
 
    p = PyObject_New(pymovex_fquery_MyIter, &pymovex_fquery_MyIterType);
    if (!p) return NULL;
@@ -263,7 +275,8 @@ static PyObject * pymovex_fquery_single(PyObject*self, PyObject*args) {
     if (DEBUG)
         fprintf(stderr, "Command: %s\n", cmd);
 
-    pymovex_set_fields(fieldMap);
+    if (! pymovex_set_fields(fieldMap))
+        return NULL;
 
     if ((result=MvxSockAccess(&comStruct, cmd)))
         return reportError("MvxSockAccess", result);
