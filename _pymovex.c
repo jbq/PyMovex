@@ -213,24 +213,41 @@ static PyTypeObject pymovex_fquery_MyIterType = {
 };
 
 int pymovex_set_fields(PyObject* fieldMap) {
-    PyObject *key, *value;
+    PyObject *key, *value, *string_value, *string_key;
     Py_ssize_t pos = 0;
     while (PyDict_Next(fieldMap, &pos, &key, &value)) {
         char* skey;
-        char* spos;
         char* svalue;
 
         // Make sure key is a string
         if (! PyString_Check(key)) {
-            skey = PyString_AsString(PyObject_Str(key));
+            string_key = PyObject_Str(key);
+            if (string_key == NULL) {
+                snprintf(errstr, sizeof(errstr), "Invalid parameter");
+                PyErr_SetString(PyMovexError, errstr);
+                return 0;
+            }
+            skey = PyString_AsString(string_key);
             snprintf(errstr, sizeof(errstr), "Bad parameter name: %s", skey);
             PyErr_SetString(PyMovexError, errstr);
             return 0;
         }
 
         skey = PyString_AsString(key);
+
         // Note: value could be an integer, so we have to call str(value) first
-        svalue = PyString_AsString(PyObject_Str(value));
+        if (! PyString_Check(value)) {
+            string_value = PyObject_Str(value);
+            if (string_value == NULL) {
+                snprintf(errstr, sizeof(errstr), "Cannot convert parameter %s to string", skey);
+                PyErr_SetString(PyMovexError, errstr);
+                return 0;
+            }
+        } else {
+            string_value = value;
+        }
+
+        svalue = PyString_AsString(string_value);
         MvxSockSetField(&comStruct, skey, svalue);
         if (DEBUG)
             fprintf(stderr, "    Field: (%s, %s)\n", skey, svalue);
