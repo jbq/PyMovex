@@ -31,8 +31,11 @@ static PyObject*OrderedDict;
 static int DEBUG = 0;
 
 PyObject*reportError(char*method, unsigned long result) {
+    PyObject* unicodeError;
+
     snprintf(errstr, sizeof(errstr), "%s returned error %lu: %s", method, result, comStruct.Buff);
-    PyErr_SetString(PyMovexError, errstr);
+    unicodeError = PyUnicode_FromString(errstr);
+    PyErr_SetObject(PyMovexError, unicodeError);
     return NULL;
 }
 
