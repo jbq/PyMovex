@@ -50,8 +50,8 @@ pymovex_connect(PyObject *self, PyObject *args, PyObject*kwargs)
     char *program;
     static char *kwlist[] = {"program", "host", "port", "user", "passwd"};
 
-   if (! PyArg_ParseTupleAndKeywords(args, kwargs, "ssiss", kwlist, &program, &host, &port, &user, &passwd))
-       return NULL;
+    if (! PyArg_ParseTupleAndKeywords(args, kwargs, "ssiss", kwlist, &program, &host, &port, &user, &passwd))
+        return NULL;
 
    /*
     * If FPW is running remote or locally does not matter if you use
